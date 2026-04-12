@@ -1,3 +1,5 @@
+Ôªøusing System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraManager3D : MonoBehaviour
@@ -5,30 +7,65 @@ public class CameraManager3D : MonoBehaviour
     public Camera mainCamera;
 
     [Header("Enquadramento")]
-    public float padding = 1.2f;  // Margem extra ao redor do grid
+    public float padding = 1.2f;
 
-    [Header("¬ngulos da c‚mera")]
-    public float tiltAngle = 45f;   // InclinaÁ„o vertical (eixo X)
-    public float rotationY = 45f;   // RotaÁ„o horizontal (eixo Y)
+    [Header("√Çngulos da c√¢mera")]
+    public float tiltAngle = 45f;
+    public float rotationY = 45f;
 
-    private void Start()
+    [Header("Zoom")]
+    public float zoomSpeed = 10f;
+    public float minDistance = 5f;
+    public float maxDistance = 50f;
+
+    [Header("Suaviza√ß√£o")]
+    public float smoothSpeed = 5f; // quanto maior, mais r√°pido chega
+
+    private float targetDistance;
+    private float currentDistance;
+
+    private Vector3 currentCenter;
+
+    void Start()
     {
         if (mainCamera == null)
             mainCamera = Camera.main;
 
+        StartCoroutine(InitCamera());
+    }
+
+    IEnumerator InitCamera()
+    {
+        yield return null; // espera 1 frame
+
         GameObject grid = GameObject.FindGameObjectWithTag("Grid");
+
         if (grid != null)
             AdjustCamera(grid);
-        else
-            Debug.LogWarning("[CameraManager3D] Nenhum objeto com a tag 'Grid' foi encontrado.");
     }
 
     private void Update()
     {
+        GameObject grid = GameObject.FindGameObjectWithTag("Grid");
+        if (grid == null) return;
+
+        // SCROLL
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0f)
+        {
+            targetDistance -= scroll * zoomSpeed;
+            targetDistance = Mathf.Clamp(targetDistance, minDistance, maxDistance);
+        }
+
+        // SUAVIZA√á√ÉO (ESSA √â A M√ÅGICA)
+        currentDistance = Mathf.Lerp(currentDistance, targetDistance, Time.deltaTime * smoothSpeed);
+
+        UpdateCameraPosition();
+
+        // RESET
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            GameObject grid = GameObject.FindGameObjectWithTag("Grid");
-            if (grid != null) AdjustCamera(grid);
+            AdjustCamera(grid);
         }
     }
 
@@ -39,21 +76,27 @@ public class CameraManager3D : MonoBehaviour
         Bounds bounds = CalculateGridBounds(gridObject);
 
         if (bounds.size == Vector3.zero)
-        {
-            Debug.LogWarning("[CameraManager3D] Bounds do grid È zero ó prefabs ainda n„o instanciados?");
             return;
-        }
 
-        Vector3 center = bounds.center;
+        currentCenter = bounds.center;
 
-        // Usa a maior dimens„o horizontal (X ou Z) para calcular dist‚ncia
         float size = Mathf.Max(bounds.size.x, bounds.size.z) * padding;
         float fov = mainCamera.fieldOfView * Mathf.Deg2Rad;
-        float distance = size / Mathf.Tan(fov / 2f);
 
+        float idealDistance = size / Mathf.Tan(fov / 2f);
+
+        targetDistance = Mathf.Clamp(idealDistance, minDistance, maxDistance);
+        currentDistance = targetDistance;
+
+        UpdateCameraPosition();
+    }
+
+    private void UpdateCameraPosition()
+    {
         Quaternion rotation = Quaternion.Euler(tiltAngle, rotationY, 0f);
         Vector3 direction = rotation * Vector3.forward;
-        Vector3 position = center - direction * distance;
+
+        Vector3 position = currentCenter - direction * currentDistance;
 
         mainCamera.transform.position = position;
         mainCamera.transform.rotation = rotation;
@@ -71,15 +114,5 @@ public class CameraManager3D : MonoBehaviour
             bounds.Encapsulate(r.bounds);
 
         return bounds;
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        GameObject grid = GameObject.FindGameObjectWithTag("Grid");
-        if (grid == null) return;
-        Bounds bounds = CalculateGridBounds(grid);
-        Gizmos.DrawWireCube(bounds.center, bounds.size);
-        Gizmos.DrawSphere(bounds.center, 0.3f);
     }
 }

@@ -36,6 +36,11 @@ public class GameManager : MonoBehaviour
     public void RunSearch(Node origin, Node destination, SearchType type)
     {
         foreach (Node node in nodes.Values)
+        {
+            node.Color = node.baseColor;
+        }
+
+        foreach (Node node in nodes.Values)
             node.ResetSearchData();
 
         List<Node> allNodes = nodes.Values.ToList();
@@ -65,7 +70,7 @@ public class GameManager : MonoBehaviour
                 foreach (Node n in lastPath)
                 {
                     Renderer r = n.GetComponent<Renderer>();
-                    if (r != null) r.material.color = pathColor;
+                    if (r != null) n.Color = pathColor;
                 }
                 break;
         }

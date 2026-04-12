@@ -1,41 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Player2 : MonoBehaviour
 {
-    public float stepDuration = 0.2f;
-    public int delayNodes = 1;
+    public Transform target; // 👈 quem ele segue
+    public float followSpeed = 5f;
+    public float distance = 1.0f; // distância da frente
 
-    public void FollowPath(List<Node> path)
+    void Update()
     {
-        StopAllCoroutines();
-        StartCoroutine(Follow(path));
-    }
+        if (target == null) return;
 
-    IEnumerator Follow(List<Node> path)
-    {
-        for (int i = 0; i < path.Count; i++)
-        {
-            int targetIndex = i - delayNodes;
+        Vector3 dir = (transform.position - target.position).normalized;
+        Vector3 desiredPosition = target.position + dir * distance;
 
-            if (targetIndex < 0)
-            {
-                yield return new WaitForSeconds(stepDuration);
-                continue;
-            }
-
-            Vector3 start = transform.position;
-            Vector3 end = path[targetIndex].transform.position;
-
-            float t = 0;
-
-            while (t < 1)
-            {
-                t += Time.deltaTime / stepDuration;
-                transform.position = Vector3.Lerp(start, end, t);
-                yield return null;
-            }
-        }
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desiredPosition,
+            Time.deltaTime * followSpeed
+        );
     }
 }

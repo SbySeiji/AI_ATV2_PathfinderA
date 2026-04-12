@@ -1,22 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Gera o grid 3D sorteando entre vários tipos de nó (prefabs),
-/// cada um com custo e cor próprios configuráveis no Inspector.
-/// </summary>
 public class GridGeneratorMono : MonoBehaviour
 {
-    // ── Estrutura que aparece como linha no Inspector ──────────────────────
     [System.Serializable]
     public class NodeType
     {
-        public string name;          // só para identificar no Inspector
-        public GameObject prefab;    // prefab com Node.cs + BoxCollider
-        public Color color;          // cor visual do cubo
-        public float cost = 1f;      // custo de travessia (usado por Dijkstra e A*)
+        public string name;
+        public GameObject prefab;
+        public Color color;
+        public float cost = 1f;
         [Range(0, 100)]
-        public int spawnWeight = 50; // peso relativo de sorteio (não precisa somar 100)
+        public int spawnWeight = 50;
     }
 
     [Header("Dimensões do grid")]
@@ -30,10 +25,6 @@ public class GridGeneratorMono : MonoBehaviour
     [Header("Referências")]
     public GameManager gameManager;
 
-    [Header("Obstáculos")]
-    [Range(0, 80)]
-    public int obstaclePercentage = 20;
-
     private List<Node> allNodes = new List<Node>();
 
     void Start()
@@ -45,13 +36,19 @@ public class GridGeneratorMono : MonoBehaviour
     {
         if (nodeTypes == null || nodeTypes.Count == 0)
         {
-            Debug.LogError("[GridGeneratorMono] Nenhum NodeType configurado no Inspector.");
+            Debug.LogError("[GridGeneratorMono] Nenhum NodeType configurado.");
             return;
+        }
+
+        // Limpa grid antigo (evita duplicação)
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
         }
 
         allNodes.Clear();
 
-        // Pré-calcula o peso total para o sorteio
+        // Soma dos pesos
         int totalWeight = 0;
         foreach (var nt in nodeTypes)
             totalWeight += Mathf.Max(0, nt.spawnWeight);
@@ -68,7 +65,6 @@ public class GridGeneratorMono : MonoBehaviour
                 {
                     Vector3 worldPos = new Vector3(startX + x, startY + y, startZ + z);
 
-                    // Sorteia qual NodeType usar com base no peso
                     NodeType chosen = PickNodeType(totalWeight);
 
                     GameObject obj = Instantiate(chosen.prefab, worldPos, Quaternion.identity, transform);
@@ -80,16 +76,10 @@ public class GridGeneratorMono : MonoBehaviour
 
                     Renderer r = obj.GetComponent<Renderer>();
 
-                    // Sorteia se vira obstáculo
-                    bool isObstacle = Random.Range(0, 100) < obstaclePercentage;
-                    if (isObstacle)
+                    if (r != null)
                     {
-                        node.isObstacle = true;
-                        if (r != null) r.material.color = Color.black;
-                    }
-                    else
-                    {
-                        if (r != null) r.material.color = chosen.color;
+                        node.baseColor = chosen.color;
+                        node.Color = node.baseColor;
                     }
 
                     allNodes.Add(node);
@@ -113,21 +103,6 @@ public class GridGeneratorMono : MonoBehaviour
                 return nt;
         }
 
-        return nodeTypes[0]; // fallback
-    }
-
-    public void ClearGrid()
-    {
-        foreach (Node node in allNodes)
-        {
-            if (node.isObstacle) continue;
-
-            Renderer r = node.GetComponent<Renderer>();
-            if (r == null) continue;
-
-            // para restaurar a cor certa de cada tipo
-            NodeType match = nodeTypes.Find(nt => Mathf.Approximately(nt.cost, node.cost));
-            r.material.color = match != null ? match.color : Color.white;
-        }
+        return nodeTypes[0];
     }
 }

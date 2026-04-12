@@ -4,7 +4,7 @@ using UnityEngine;
 public class Node : MonoBehaviour
 {
     public Vector3 gridPosition;
-
+    public Color baseColor;
     public float cost = 1f;
     public float distance = Mathf.Infinity;
     public Node previousNode = null;
@@ -17,9 +17,21 @@ public class Node : MonoBehaviour
 
     private GameManager gm;
 
-    void Start()
+    private Renderer r;
+
+    public Color Color
+    {
+        get => r != null ? r.material.color : Color.white;
+        set
+        {
+            if (r != null)
+                r.material.color = value;
+        }
+    }
+    void Awake()
     {
         gm = FindFirstObjectByType<GameManager>();
+        r = GetComponent<Renderer>();
     }
 
     public void AddNeighbours(Dictionary<Vector3, Node> grid)

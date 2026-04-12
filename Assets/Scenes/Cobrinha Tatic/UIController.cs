@@ -56,7 +56,6 @@ public class UIController : MonoBehaviour
 
         clearGridButton.onClick.AddListener(() =>
         {
-            gameManager.gridGenerator.ClearGrid();
             originNode = null;
             destinationNode = null;
             currentState = SelectionState.None;
@@ -122,11 +121,6 @@ public class UIController : MonoBehaviour
 
                 // chama seguidores
                 Player2[] followers = FindObjectsByType<Player2>(FindObjectsSortMode.None);
-
-                foreach (Player2 follower in followers)
-                {
-                    follower.FollowPath(gameManager.lastPath);
-                }
             }
 
             currentState = SelectionState.Filled;
@@ -140,11 +134,7 @@ public class UIController : MonoBehaviour
         // limpa visual
         foreach (Node node in gameManager.nodes.Values)
         {
-            if (!node.isObstacle)
-            {
-                Renderer r = node.GetComponent<Renderer>();
-                if (r != null) r.material.color = Color.white;
-            }
+            node.Color = node.baseColor;
         }
 
         // destino vira novo start

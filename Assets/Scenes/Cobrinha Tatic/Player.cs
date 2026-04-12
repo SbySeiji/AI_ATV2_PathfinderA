@@ -2,17 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Lider da minhoca. Move-se pelo caminho encontrado pelo algoritmo de busca.
+/// Quando morre (colide com inimigo), o GameController cuida da promocao do seguidor.
+///
+/// PREFAB DO PLAYER:
+///   - Qualquer mesh 3D
+///   - Componente Player (este script)
+///   - Componente Collider com "Is Trigger" MARCADO
+///   - Tag "Player" OBRIGATORIA
+/// </summary>
 public class Player : MonoBehaviour
 {
+    public float stepDuration = 0.2f;
 
     public void MoveAlongPath(List<Node> path, System.Action onFinish = null)
     {
-        StopAllCoroutines(); // evita múltiplos movimentos
+        StopAllCoroutines();
         StartCoroutine(Move(path, onFinish));
     }
-
-    public float speed = 3f;
-    public float stepDuration = 0.2f; // tempo por node
 
     IEnumerator Move(List<Node> path, System.Action onFinish)
     {
@@ -20,13 +28,12 @@ public class Player : MonoBehaviour
         {
             Vector3 start = transform.position;
             Vector3 end = node.transform.position;
-
             float t = 0;
 
-            while (t < 1)
+            while (t < 1f)
             {
                 t += Time.deltaTime / stepDuration;
-                transform.position = Vector3.Lerp(start, end, t);
+                transform.position = Vector3.Lerp(start, end, Mathf.Clamp01(t));
                 yield return null;
             }
         }
