@@ -2,9 +2,9 @@
 
 public class Player2 : MonoBehaviour
 {
-    public Transform target; // 👈 quem ele segue
+    public Transform target;
     public float followSpeed = 5f;
-    public float distance = 1.0f; // distância da frente
+    public float distance = 1.0f;
 
     void Update()
     {

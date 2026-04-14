@@ -2,16 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Lider da minhoca. Move-se pelo caminho encontrado pelo algoritmo de busca.
-/// Quando morre (colide com inimigo), o GameController cuida da promocao do seguidor.
-///
-/// PREFAB DO PLAYER:
-///   - Qualquer mesh 3D
-///   - Componente Player (este script)
-///   - Componente Collider com "Is Trigger" MARCADO
-///   - Tag "Player" OBRIGATORIA
-/// </summary>
 public class Player : MonoBehaviour
 {
     public float stepDuration = 0.2f;

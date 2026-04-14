@@ -2,28 +2,29 @@ using UnityEngine;
 
 public class Orb : MonoBehaviour
 {
-    private FollowerManager followerManager;
+    private FollowerPool pool;
     private OrbSpawner spawner;
 
     void Start()
     {
-        followerManager = FindObjectOfType<FollowerManager>();
+        pool = FindObjectOfType<FollowerPool>();
         spawner = FindObjectOfType<OrbSpawner>();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            Vector3 spawnPos = transform.position;
+        if (!other.CompareTag("Player")) return;
 
-            followerManager.AddFollower(spawnPos);
+        var follower = pool.GetAvailableFollower();
 
-            // desativa orbe
-            gameObject.SetActive(false);
+        if (follower == null) return;
 
-            // spawn próximo
-            spawner.SpawnRandomOrb();
-        }
+        follower.transform.position = transform.position;
+
+        pool.RefreshFollowers();
+
+        gameObject.SetActive(false);
+
+        spawner.SpawnRandomOrb();
     }
 }
