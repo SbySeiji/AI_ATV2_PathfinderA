@@ -8,9 +8,9 @@ public class AStar
     private class NodeRecord
     {
         public Node node;
-        public Node connection;       // De qual nó viemos
-        public float costSoFar;       // g(n): custo real acumulado
-        public float estimatedTotal;  // f(n) = g(n) + h(n)
+        public Node connection;
+        public float costSoFar;
+        public float estimatedTotal;
 
         public NodeRecord(Node node)
         {
